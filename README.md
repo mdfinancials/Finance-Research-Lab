@@ -6,6 +6,11 @@ Five educational financial analytics prototypes that demonstrate core analyst sk
 
 > **Transparency:** This repository ships with *synthetic illustrative data and assumptions*, **not live prices or real customer records**. It makes no claim of realised portfolio returns or verified client outcomes. Models are simplified educational tools, not financial advice, KYC compliance determinations, or investment recommendations.
 
+
+## Featured case study: NVIDIA (NVDA) three-statement model
+
+[Explore the NVIDIA three-statement case study](case_studies/nvidia_three_statement/README.md). This research exercise uses reported FY2025–FY2026 NVIDIA financial statements and transparent, illustrative FY2027–FY2029 assumptions to link income, balance-sheet and cash-flow projections. The case study includes a tested Python forecasting implementation. The downloadable Excel workbook can be added to the folder separately.
+
 ## Projects
 
 | # | Project | Skills demonstrated | Module |
