@@ -8,13 +8,13 @@ NVIDIA FY2026 GAAP revenue was **$215,938 million**, net income **$120,067 milli
 
 ## Modelling pipeline
 1. `model.py`: linked FY2027–FY2029 illustrative income statement, balance sheet and cash-flow forecast from assumptions.
-2. `valuation_case.py`: enterprise discounted cash flow based on three-year unlevered cash-flow **proxy** (operating cash flow minus capex), then net cash bridge to equity value.
+2. `valuation_case.py`: enterprise discounted cash flow based on three-year estimated **unlevered FCFF** (EBIT after tax plus depreciation, less capital expenditure and changes in operating net working capital), then net cash bridge to equity value.
 3. Scenario parameters: bear (12.5% WACC, 2.5% perpetual growth), base (10.5%, 3.5%) and bull (9.0%, 4.0%). Further cash-flow scaling differs by scenario.
 4. 5 × 5 WACC/terminal growth sensitivity matrix.
 5. A **24,500 million share count is illustrative, not verified for the valuation date**. Verify share count and stock-based compensation treatment before citing any per-share valuation.
 
 ## Valuation caveats
-Operating cash flow less capex is **levered company FCF**, not technically unlevered FCFF. Accordingly this first-stage DCF uses an approximate enterprise-value bridge and **must not be described as a fully calibrated institutional FCFF DCF or live price target**. The three-year explicit projection also concentrates value in the terminal assumption. Future version should calculate EBIT(1-tax) + D&A - capex - ΔNWC and reconcile share counts/market cap to the same as-of date.
+The script calculates FCFF as EBIT(1-tax) + D&A - capex - Δoperating NWC. Stock-based compensation remains an economic expense. The forecast is still a simplified three-year explicit period, with a material terminal-value dependence and scenario-scaled forecast cash flows rather than fully reforecasted statements. The share count is illustrative, and no point-in-time market price or consensus reference is included; this is **not a current investable price target**.
 
 **Do not label scenario outputs BUY / SELL, calculate upside to an unverified current share price, or advertise these as NVIDIA management guidance.**
 
