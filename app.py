@@ -46,6 +46,21 @@ if page.startswith("Home"):
     a.metric("Interactive model categories","5")
     b.metric("Applied case studies","5")
     c1.metric("Reporting standard","Assumptions disclosed")
+    st.divider()
+    st.subheader("About the analyst")
+    st.markdown("**MD Mahdi Mahbub Rauf**  ·  Sydney, Australia")
+    st.write("Bachelor of Commerce (Finance), Macquarie University. Banking experience at HSBC Australia, with exposure to customer financial needs, banking operations, and fraud and scam awareness. Interested in investment research, portfolio management, and using financial modelling to make complicated decisions easier to explain.")
+    e1,e2=st.columns(2)
+    with e1.container(border=True):
+        st.markdown("**Education & experience**")
+        st.write("B.Com. (Finance) — Macquarie University")
+        st.write("Personal Banking Consultant — HSBC Australia")
+        st.caption("Independent educational projects; no HSBC customer data or proprietary models are included.")
+    with e2.container(border=True):
+        st.markdown("**Tools & analytical methods**")
+        st.write("Python · pandas · NumPy · SciPy · Streamlit · Excel")
+        st.write("Three-statement modelling · DCF · Portfolio risk · Duration & convexity · EPS accretion")
+        st.caption("Tools used in the projects; educational model results are not evidence of actual investment performance.")
     st.subheader("Explore the projects")
     catalog=[
       ("01 · Equity research","NVIDIA three-statement model and FCFF valuation scenarios","Reported FY2025–26 financials plus forecast assumptions","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/nvidia_three_statement"),
@@ -62,6 +77,19 @@ if page.startswith("Home"):
                 st.write(description)
                 st.caption(evidence)
                 st.link_button("Read case study",url,use_container_width=True)
+    st.divider()
+    st.subheader("Research takeaways")
+    st.caption("Interpretations from the exercises; scenario results, not verified trading outcomes.")
+    takeaways=[
+      ("NVIDIA valuation","The implied value changes materially with WACC and long-run growth. Terminal value dependence means forecast assumptions must be justified against filings."),
+      ("ETF portfolio","Adding international equities may diversify geography, but the VOO/QQQ allocation retains overlapping US large-cap exposure. Synthetic stress tests quantify the assumed downside, not real historical losses."),
+      ("KYC review analytics","Explicit rule flags and reason codes support explainable triage. Even apparently strong performance on a six-row synthetic dataset cannot establish compliance or production reliability."),
+      ("Fixed-income risk","As yields rise, the hypothetical bond price falls. Modified duration gives a first-order estimate; convexity helps explain nonlinear price sensitivity."),
+      ("M&A transaction","Higher synergies generally improve pro-forma EPS, but accretion does not prove economic value creation without financing, integration and purchase-accounting analysis.")
+    ]
+    for heading,insight in takeaways:
+        with st.expander(heading):
+            st.write(insight)
     st.divider()
     st.subheader("How to use this portfolio")
     st.write("Select a model from the left navigation to adjust financial drivers, examine outputs, and explore the applied case studies. Source code, methodology and assumptions are linked from GitHub.")
