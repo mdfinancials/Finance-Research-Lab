@@ -31,8 +31,8 @@ if page.startswith("Home"):
     <div class="hero">
       <div class="eyebrow">Independent finance research portfolio</div>
       <h1>Finance Research Lab</h1>
-      <p>Five interactive financial analysis tools and five applied case studies covering equity valuation, ETF risk, financial-crime triage, fixed income and M&amp;A.</p>
-      <p style="font-size:.86rem;color:#a6ebd6">Python · Financial modelling · Scenario analysis · Research documentation</p>
+      <p>Five interactive financial models, five applied case studies, and expanded historical ETF and NVIDIA equity research.</p>
+      <p style="font-size:.86rem;color:#a6ebd6">Financial modelling · Historical backtesting · AI-assisted research tools · Research documentation</p>
     </div>
     """,unsafe_allow_html=True)
     st.write("")
@@ -58,7 +58,7 @@ if page.startswith("Home"):
     st.subheader("Explore the projects")
     catalog=[
       ("01 · Equity research","NVIDIA three-statement model and FCFF valuation scenarios","Reported FY2025–26 financials plus forecast assumptions","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/nvidia_three_statement"),
-      ("02 · Portfolio construction","VOO / VXUS / QQQ asset allocation, volatility and stress tests","Simulated monthly returns; not investment track record","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/etf_portfolio"),
+      ("02 · Portfolio construction","VOO / VXUS / QQQ historical backtests, portfolio optimisation and risk analysis","Synthetic lab, plus separate Yahoo historical ETF backtest","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/etf_portfolio"),
       ("03 · KYC review analytics","Explainable prioritisation with reason codes and synthetic human labels","Fully synthetic; not a regulatory decision engine","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/kyc_triage"),
       ("04 · Fixed-income risk","Bond price shocks, modified duration, convexity and curve reference","Dated public Treasury yield; hypothetical coupon bond","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/treasury_duration"),
       ("05 · M&A transaction analysis","Pro-forma EPS, funding mix, synergy break-even scenarios","Entirely fictional deal and companies","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/ma_acquisition")]
@@ -73,7 +73,7 @@ if page.startswith("Home"):
                 st.link_button("Read case study",url,use_container_width=True)
     st.divider()
     st.subheader("NVIDIA · Yahoo Finance research")
-    st.write("Explore NVIDIA financial statement data retrieved from Yahoo Finance, historical share prices, and interactive five-year DCF scenarios in the sidebar: **07 · NVIDIA Yahoo Finance Research**.")
+    st.write("Download a professionally structured NVIDIA equity research PDF, with a source-based thesis and transparent scenario DCF, under **07 · NVIDIA Yahoo Finance Research**. Explore historical VOO/VXUS/QQQ backtests, the efficient frontier and in-sample optimisation under **08 · Historical ETF Backtest**.")
     st.markdown("[Read the methodology on GitHub](https://github.com/mdfinancials/Finance-Research-Lab/blob/main/case_studies/nvidia_three_statement/YAHOO_FINANCE_RESEARCH.md)")
     st.subheader("Research takeaways")
     st.caption("Interpretations from the exercises; scenario results, not verified trading outcomes.")
@@ -433,6 +433,7 @@ else:
             st.dataframe(pd.DataFrame(nvda_grid(),columns=["WACC","Terminal growth","Illustrative USD/share"]).round(3),hide_index=True,use_container_width=True)
     elif case=="ETF Allocation":
         st.subheader("VOO / VXUS / QQQ | Synthetic return and stress study")
+        st.info("This reproducible demonstration uses synthetic returns. For actual Yahoo historical ETF prices and an efficient-frontier visualisation, select sidebar item **08 · Historical ETF Backtest**.")
         r=etf_case()
         st.write("Allocation: 45% VOO / 35% VXUS / 20% QQQ. No historical performance is claimed.")
         st.dataframe(pd.DataFrame([r["summary"]]).round(3),hide_index=True,use_container_width=True)
