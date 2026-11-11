@@ -7,6 +7,16 @@ Five educational financial analytics prototypes, plus five applied case studies 
 > **Transparency:** This repository ships with *synthetic illustrative data and assumptions*, **not live prices or real customer records**. It makes no claim of realised portfolio returns or verified client outcomes. Models are simplified educational tools, not financial advice, KYC compliance determinations, or investment recommendations.
 
 
+## About the analyst
+
+**MD Mahdi Mahbub Rauf** — Sydney, Australia
+
+Bachelor of Commerce (Finance), **Macquarie University**. Banking experience as a **Personal Banking Consultant at HSBC Australia**, including customer-facing banking operations and fraud/scam awareness. Career interests include investment research, portfolio management, financial modelling, and analytical roles in financial services.
+
+**Tools demonstrated in this repository:** Python, pandas, NumPy, SciPy, Streamlit and Excel. Methods include three-statement forecasting, discounted cash flow (DCF), portfolio risk analysis, fixed-income duration/convexity, synthetic KYC review prioritisation and M&A EPS accretion/dilution.
+
+**Confidentiality:** These are independent educational studies; no bank customer records, confidential employer documents, or proprietary models are included.
+
 ## Interactive portfolio website
 
 **[Open the interactive Finance Research Lab →](https://md-finance-research-lab.streamlit.app/)** — Streamlit website deployed from this repository. Explore five model categories and five applied case studies. Screenshots confirm the homepage is loading; individual model interactions and anonymous access should still be checked before putting this link on a CV.
@@ -32,6 +42,16 @@ Each case study has its own analytical question, methods, assumptions, limitatio
 To reproduce all case studies: install `requirements.txt` then run `python -m pytest -q`. To run individual scripts: `python -m case_studies.etf_portfolio.study` (replace package name).
 
 **Evidence standards:** These are analyst training studies, not validated investment recommendations, real trade returns, regulatory AML systems or actual deal announcements. Inputs, historical reference dates and illustrative scenarios are identified in each project.
+
+## Research takeaways
+
+| Project | Main learning |
+|---|---|
+| NVIDIA valuation | Implied DCF values are highly sensitive to WACC, terminal growth and cash-flow assumptions. |
+| ETF construction | International diversification can broaden exposure, but VOO and QQQ introduce overlapping US large-cap risk. Synthetic results must not be presented as backtested performance. |
+| Synthetic KYC | Reason-coded review queues improve transparency; unvalidated thresholds and small fictional samples cannot support production compliance claims. |
+| Bond risk | Fixed-rate bond prices fall as yields rise; convexity improves duration-based approximations for larger yield shocks. |
+| Hypothetical M&A | Greater synergies can lift pro-forma EPS, but EPS accretion alone does not establish transaction value creation. |
 
 ## Projects
 
