@@ -79,6 +79,9 @@ if page.startswith("Home"):
                 st.caption(evidence)
                 st.link_button("Read case study",url,use_container_width=True)
     st.divider()
+    st.subheader("NVIDIA · Yahoo Finance research")
+    st.write("Explore NVIDIA financial statement data retrieved from Yahoo Finance, historical share prices, and interactive five-year DCF scenarios in the sidebar: **07 · NVIDIA Yahoo Finance Research**.")
+    st.markdown("[Read the methodology on GitHub](https://github.com/mdfinancials/Finance-Research-Lab/blob/main/case_studies/nvidia_three_statement/YAHOO_FINANCE_RESEARCH.md)")
     st.subheader("Research takeaways")
     st.caption("Interpretations from the exercises; scenario results, not verified trading outcomes.")
     takeaways=[
