@@ -7,11 +7,16 @@ from projects.portfolio import metrics,rebalance_returns,min_variance_weights
 from projects.kyc import score_customers,sample_customers
 from projects.fixed_income import bond_analytics,shock_table
 from projects.mergers import deal_model,scenarios
+from case_studies.nvidia_three_statement.valuation_case import value_case as nvda_dcf, sensitivity as nvda_grid
+from case_studies.etf_portfolio.study import analyse as etf_case
+from case_studies.kyc_triage.study import evaluate as kyc_case
+from case_studies.treasury_duration.study import analyse as bond_case
+from case_studies.ma_acquisition.study import analyse as ma_case, matrix as ma_matrix
 
 st.set_page_config(page_title='Finance Research Lab',layout='wide',page_icon='📈')
 st.title('Finance Research Lab')
 st.caption('Five reproducible analytical prototypes | DEMONSTRATION DATA — not investment advice or live market data')
-page=st.sidebar.radio('Project', ['01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling'])
+page=st.sidebar.radio('Project', ['01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies'])
 
 if page.startswith('01'):
     st.header('DCF valuation and sensitivity analysis')
@@ -72,7 +77,7 @@ elif page.startswith('04'):
     st.dataframe(shock_table(base_yield=yld,coupon_rate=coupon,years=years),use_container_width=True)
     st.caption('Annual-coupon bond, parallel yield shocks, no spread or default modelling.')
 
-else:
+elif page.startswith('05'):
     st.header('Acquisition EPS accretion / dilution')
     a,b,c=st.columns(3)
     stock=a.slider('Stock-funded fraction',0.,1.,.4,.05)
@@ -85,3 +90,43 @@ else:
     c.metric('Accretion / (dilution)',f"{x['accretion_pct']:+.1%}")
     st.dataframe(scenarios().round(3),use_container_width=True)
     st.caption('Simplified EPS screen only; excludes fees, integration costs, purchase accounting, amortisation and timing.')
+
+else:
+    st.header("Applied finance case studies")
+    st.caption("Five sourced or synthetic, reproducible analyst cases. These are not live investment recommendations.")
+    case=st.selectbox("Select case study",["NVIDIA DCF","ETF Allocation","Synthetic KYC","Treasury Duration","Hypothetical M&A"])
+    if case=="NVIDIA DCF":
+        st.subheader("NVIDIA | FY2026 filings + FY2027–29 illustrative scenarios")
+        st.write("These are analyst scenarios, not a live NVDA price target. Share count and growth assumptions are illustrative.")
+        rows=[{"scenario":s,**{k:v for k,v in nvda_dcf(s).items() if k in ("wacc","terminal_growth","value_per_share_usd","terminal_pv_share")}} for s in ("bear","base","bull")]
+        st.dataframe(pd.DataFrame(rows),use_container_width=True)
+        st.dataframe(pd.DataFrame(nvda_grid(),columns=["WACC","Terminal growth","Illustrative USD/share"]),use_container_width=True)
+    elif case=="ETF Allocation":
+        st.subheader("VOO / VXUS / QQQ | Synthetic return and stress study")
+        r=etf_case()
+        st.write("Allocation: 45% VOO / 35% VXUS / 20% QQQ. No historical performance is claimed.")
+        st.dataframe(pd.DataFrame([r["summary"]]),use_container_width=True)
+        st.metric("Hypothetical stress loss",f'{r["stress_loss"]:.1%}')
+        st.dataframe(pd.DataFrame({"ETF":["VOO","VXUS","QQQ"],"minimum_variance_weight":r["min_variance_weights"]}),use_container_width=True)
+    elif case=="Synthetic KYC":
+        st.subheader("Explainable KYC review queue | Entirely synthetic records")
+        r=kyc_case()
+        a,b=st.columns(2)
+        a.metric("Synthetic precision",f'{r["precision"]:.0%}')
+        b.metric("Synthetic recall",f'{r["recall"]:.0%}')
+        st.dataframe(r["review_queue"],use_container_width=True)
+        st.warning("No actual customers, AML conclusions, or production model validation.")
+    elif case=="Treasury Duration":
+        st.subheader("10Y Treasury par yield snapshot | 10 Nov 2026")
+        r=bond_case()
+        st.write("Market par yield input: 4.98% on 10 Nov 2026. 4.5% coupon is hypothetical.")
+        st.metric("Model bond price per $1,000 face",f'{r["base_price"]:.2f}')
+        st.dataframe(pd.DataFrame(r["scenarios"]),use_container_width=True)
+    else:
+        st.subheader("Aster Cloud / Beacon AI | Entirely fictional acquisition")
+        r=ma_case()
+        a,b=st.columns(2)
+        a.metric("EPS accretion / dilution",f'{r["accretion_pct"]:+.1%}')
+        b.metric("Break-even pretax synergies (USD millions)",f'{r["break_even_synergies_m"]:,.1f}')
+        st.dataframe(pd.DataFrame(ma_matrix()),use_container_width=True)
+        st.info("Accretion alone does not establish transaction value creation.")
