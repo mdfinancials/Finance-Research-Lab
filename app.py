@@ -14,11 +14,60 @@ from case_studies.treasury_duration.study import analyse as bond_case
 from case_studies.ma_acquisition.study import analyse as ma_case, matrix as ma_matrix
 
 st.set_page_config(page_title='Finance Research Lab',layout='wide',page_icon='📈')
-st.title('Finance Research Lab')
-st.caption('Five reproducible analytical prototypes | DEMONSTRATION DATA — not investment advice or live market data')
-page=st.sidebar.radio('Project', ['01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies'])
+st.markdown("""
+<style>
+.block-container {max-width: 1120px; padding-top: 2.0rem; padding-bottom: 4rem;}
+[data-testid="stSidebar"] {background: #111b2b;}
+[data-testid="stSidebar"] * {color: #e4edf8;}
+.hero {padding: 2.15rem 2rem; border-radius: 18px; background: linear-gradient(115deg,#132b48,#17253e 60%,#245a69); color: white;}
+.hero .eyebrow {font-size: .78rem; letter-spacing: .15em; color: #a6ebd6; text-transform: uppercase; font-weight: 700;}
+.hero h1 {font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.14; color:white; margin: .55rem 0;}
+.hero p {color:#d2e0ed; max-width: 680px; font-size:1.07rem;}
+.eyebrow-label {letter-spacing:.1em; text-transform:uppercase; font-size:.77rem; font-weight:700; color:#2c8590;}
+</style>
+""",unsafe_allow_html=True)
+page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies'])
+st.sidebar.divider()
+st.sidebar.caption("Independent finance research • Education and scenario analysis")
+st.sidebar.link_button("GitHub source code","https://github.com/mdfinancials/Finance-Research-Lab",use_container_width=True)
 
-if page.startswith('01'):
+
+if page.startswith("Home"):
+    st.markdown("""
+    <div class="hero">
+      <div class="eyebrow">Independent finance research portfolio</div>
+      <h1>Finance Research Lab</h1>
+      <p>Five interactive financial analysis tools and five applied case studies covering equity valuation, ETF risk, financial-crime triage, fixed income and M&amp;A.</p>
+      <p style="font-size:.86rem;color:#a6ebd6">Python · Financial modelling · Scenario analysis · Research documentation</p>
+    </div>
+    """,unsafe_allow_html=True)
+    st.write("")
+    a,b,c1=st.columns(3)
+    a.metric("Interactive model categories","5")
+    b.metric("Applied case studies","5")
+    c1.metric("Reporting standard","Assumptions disclosed")
+    st.subheader("Explore the projects")
+    catalog=[
+      ("01 · Equity research","NVIDIA three-statement model and FCFF valuation scenarios","Reported FY2025–26 financials plus forecast assumptions","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/nvidia_three_statement"),
+      ("02 · Portfolio construction","VOO / VXUS / QQQ asset allocation, volatility and stress tests","Simulated monthly returns; not investment track record","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/etf_portfolio"),
+      ("03 · KYC review analytics","Explainable prioritisation with reason codes and synthetic human labels","Fully synthetic; not a regulatory decision engine","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/kyc_triage"),
+      ("04 · Fixed-income risk","Bond price shocks, modified duration, convexity and curve reference","Dated public Treasury yield; hypothetical coupon bond","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/treasury_duration"),
+      ("05 · M&A transaction analysis","Pro-forma EPS, funding mix, synergy break-even scenarios","Entirely fictional deal and companies","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/ma_acquisition")]
+    for i in range(0,len(catalog),2):
+        cols=st.columns(2)
+        for j,item in enumerate(catalog[i:i+2]):
+            title,description,evidence,url=item
+            with cols[j].container(border=True):
+                st.markdown("**"+title+"**")
+                st.write(description)
+                st.caption(evidence)
+                st.link_button("Read case study",url,use_container_width=True)
+    st.divider()
+    st.subheader("How to use this portfolio")
+    st.write("Select a model from the left navigation to adjust financial drivers, examine outputs, and explore the applied case studies. Source code, methodology and assumptions are linked from GitHub.")
+    st.info("Educational research: outputs are not live prices, investment recommendations, client records, or validated compliance decisions. All simulations and assumptions are labelled.")
+
+elif page.startswith('01'):
     st.header('DCF valuation and sensitivity analysis')
     a,b,c=st.columns(3)
     rev=a.number_input('Starting revenue (million)',100.,100000.,1000.)
