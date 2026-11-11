@@ -2,6 +2,9 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
+import altair as alt
+from case_studies.etf_portfolio.historical_backtest import load_adjusted_prices, historical_backtest, PortfolioDataError
+from case_studies.nvidia_three_statement.research_report import build_nvidia_research_pdf
 from projects.valuation import dcf,sensitivity
 from projects.portfolio import metrics,rebalance_returns,min_variance_weights
 from projects.kyc import score_customers,sample_customers
@@ -17,7 +20,7 @@ from ui_components import apply_style, heading, insight, source_note, footer, do
 
 st.set_page_config(page_title='Finance Research Lab',layout='wide',page_icon='📈')
 apply_style()
-page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies','07 · NVIDIA Yahoo Finance Research'])
+page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies','07 · NVIDIA Yahoo Finance Research','08 · Historical ETF Backtest'])
 st.sidebar.divider()
 st.sidebar.caption("Independent finance research • Education and scenario analysis")
 st.sidebar.link_button("GitHub source code","https://github.com/mdfinancials/Finance-Research-Lab",use_container_width=True)
@@ -124,11 +127,14 @@ elif page.startswith('07'):
         latest_annual=snapshot["annual"].sort_values("fiscal_year_end").iloc[-1]
         yahoo_shares=latest_annual.get("shares",float("nan"))
         if pd.isna(yahoo_shares) or float(yahoo_shares)<=0:
-            st.warning("Yahoo did not provide diluted weighted-average shares. Enter a share count verified from NVIDIA filings before calculating valuation.")
-            shares=st.number_input("Verified diluted shares (millions)",min_value=1.0,max_value=100000.0,value=1.0,step=1.0)
-            st.stop()
-        shares=st.number_input("Diluted shares (millions; verify against filings)",min_value=1.0,max_value=100000.0,value=float(yahoo_shares),step=10.0)
-        st.caption(f"Yahoo Finance annual diluted average shares: {float(yahoo_shares):,.0f} million. Forecast price/share is sensitive to this input.")
+            st.warning("Yahoo did not provide diluted average shares. Enter a figure verified from NVIDIA filings.")
+            shares=st.number_input("Verified diluted shares (millions)",min_value=1.0,max_value=100000.0,value=None,step=1.0)
+            if shares is None:
+                st.info("Enter a verified share-count input to enable per-share valuation.")
+                st.stop()
+        else:
+            shares=st.number_input("Diluted shares (millions; verify against filings)",min_value=1.0,max_value=100000.0,value=float(yahoo_shares),step=10.0)
+            st.caption(f"Yahoo annual diluted weighted-average shares: {float(yahoo_shares):,.0f} million. This differs from current outstanding shares.")
         scenarios_df=scenario_table(snapshot,shares_m=shares)
         scenario_display=scenarios_df.copy()
         for col in ("wacc","terminal_growth"):
@@ -148,6 +154,23 @@ elif page.startswith('07'):
             matrix.index=[f"{v:.1%}" for v in matrix.index]
             matrix.columns=[f"{v:.1%}" for v in matrix.columns]
             st.dataframe(matrix.style.format("{:,.2f}").background_gradient(cmap="Blues",axis=None),use_container_width=True)
+        st.divider()
+        st.subheader("NVIDIA equity research initiation report")
+        st.markdown("Download an independently prepared PDF containing an investment thesis, business and industry analysis, FY2027 Q2 reported facts, DCF scenarios, catalysts, risks, diligence questions and source references.")
+        st.caption("Research facts reviewed 12 November 2026. The 26 August 2026 earnings release is dated and may be superseded. The DCF uses the annual Yahoo observations above.")
+        with st.expander("Research thesis and key questions"):
+            st.markdown("**Thesis:** AI infrastructure deployment presents a growth opportunity, but valuation depends on capacity, profitability, geopolitics and the discount rate. Not rated; no investment recommendation.")
+            st.markdown("**Key risks:** export restrictions, customer capital spending, competing accelerators, supply constraints and terminal-value sensitivity.")
+            st.markdown("**Further work:** reconcile to current 10-K/10-Q, incorporate new interim results and evaluate valuation against peers.")
+        try:
+            pdf_bytes=build_nvidia_research_pdf(snapshot,shares_m=shares)
+            st.download_button("Download NVIDIA research report (PDF)",data=pdf_bytes,
+                file_name="NVIDIA_Research_Initiation_Finance_Research_Lab.pdf",
+                mime="application/pdf",type="primary",use_container_width=True)
+            st.caption("Generated from the current Yahoo Finance data snapshot and your selected share count.")
+        except Exception as report_error:
+            st.warning("PDF export is temporarily unavailable; the financial dashboard remains accessible.")
+            st.caption(str(report_error))
         st.warning("Scenarios are analyst assumptions, not current price targets or recommendations. Yahoo's filing periods, missing investment lines, dilution and accounting classifications require validation.")
     except (YahooDataError,ValueError,KeyError,TypeError,IndexError) as exc:
         st.error("Yahoo Finance data cannot be used to calculate the report right now.")
