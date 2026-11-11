@@ -2,9 +2,9 @@
 
 [![Python model tests](https://github.com/mdfinancials/Finance-Research-Lab/actions/workflows/python-tests.yml/badge.svg)](https://github.com/mdfinancials/Finance-Research-Lab/actions/workflows/python-tests.yml)
 
-Five educational financial analytics prototypes, plus five applied case studies that demonstrate core analyst skills: **equity valuation, portfolio construction, financial-crime risk triage, interest-rate risk, and M&A deal analysis**.
+Five educational financial analytics prototypes, five applied case studies, and two research extensions (a sourced NVIDIA PDF and a historical ETF backtesting/optimisation dashboard) that demonstrate core analyst skills: **equity valuation, portfolio construction, financial-crime risk triage, interest-rate risk, and M&A deal analysis**.
 
-> **Transparency:** This repository ships with *synthetic illustrative data and assumptions*, **not live prices or real customer records**. It makes no claim of realised portfolio returns or verified client outcomes. Models are simplified educational tools, not financial advice, KYC compliance determinations, or investment recommendations.
+> **Transparency:** The synthetic demonstration pages use *fictional return paths and assumptions*. Separate NVIDIA and historical ETF research pages retrieve **dated third-party Yahoo Finance observations**, which may be delayed or unavailable. No real customer records are included. It makes no claim of realised portfolio returns or verified client outcomes. Models are simplified educational tools, not financial advice, KYC compliance determinations, or investment recommendations.
 
 
 ## About the analyst
@@ -19,13 +19,17 @@ Bachelor of Commerce (Finance), **Macquarie University**. Banking experience as 
 
 ## Interactive portfolio website
 
-**[Open the interactive Finance Research Lab →](https://md-finance-research-lab.streamlit.app/)** — Streamlit website deployed from this repository. Explore five model categories and five applied case studies. Screenshots confirm the homepage is loading; individual model interactions and anonymous access should still be checked before putting this link on a CV.
+**[Open the interactive Finance Research Lab →](https://md-finance-research-lab.streamlit.app/)** — Streamlit website deployed from this repository. Explore five model categories, five applied case studies, a downloadable initiation-style NVIDIA research PDF, and a Yahoo-based VOO/VXUS/QQQ historical ETF portfolio dashboard.
 
 Source: [`app.py`](app.py) · [Deployment & troubleshooting](DEPLOY.md).
 
 ## NVIDIA equity research using Yahoo Finance
 
 [Open the NVIDIA Yahoo Finance research methodology](case_studies/nvidia_three_statement/YAHOO_FINANCE_RESEARCH.md). The live Streamlit sidebar includes **07 · NVIDIA Yahoo Finance Research**, with a Yahoo Finance annual-statement import, a dated historical share-price chart, five-year FCFF scenarios, and WACC/terminal-growth sensitivity analysis.
+
+**Research report:** [NVIDIA initiation-style PDF methodology](case_studies/nvidia_three_statement/INITIATION_REPORT.md). The Streamlit page generates a professionally formatted PDF from the available Yahoo snapshot, incorporating a dated qualitative thesis, company disclosures from 26 August 2026, illustrative DCF scenarios, catalysts, risk factors and references.
+
+**Historical ETF research:** [VOO/VXUS/QQQ methodology](case_studies/etf_portfolio/HISTORICAL_RESEARCH.md). Sidebar page **08 · Historical ETF Backtest** retrieves adjusted Yahoo price history, computes fixed-weight historical portfolio statistics, plots a long-only efficient frontier, and compares historical *in-sample* minimum-variance and maximum-Sharpe weights. These hindsight-optimised weights are **not** represented as realised trading performance.
 
 **Data quality:** Yahoo Finance data is requested dynamically; availability and reported fields can vary. The project does not claim a verified live price target or publish unvalidated downloaded values.
 
@@ -54,7 +58,7 @@ To reproduce all case studies: install `requirements.txt` then run `python -m py
 | Project | Main learning |
 |---|---|
 | NVIDIA valuation | Implied DCF values are highly sensitive to WACC, terminal growth and cash-flow assumptions. |
-| ETF construction | International diversification can broaden exposure, but VOO and QQQ introduce overlapping US large-cap risk. Synthetic results must not be presented as backtested performance. |
+| ETF construction | VOO and QQQ introduce overlapping US large-cap risk. The synthetic risk lab is separate from the real historical backtest; in-sample optimized weights are not out-of-sample investment performance. |
 | Synthetic KYC | Reason-coded review queues improve transparency; unvalidated thresholds and small fictional samples cannot support production compliance claims. |
 | Bond risk | Fixed-rate bond prices fall as yields rise; convexity improves duration-based approximations for larger yield shocks. |
 | Hypothetical M&A | Greater synergies can lift pro-forma EPS, but EPS accretion alone does not establish transaction value creation. |
@@ -95,7 +99,7 @@ Unit tests cover fundamental identities, expected sensitivity direction, financi
 | Project | Illustrative question | Important limitation |
 |---|---|---|
 | DCF | How does implied value shift with WACC or growth? | No filing-derived forecast; terminal assumptions drive value |
-| Portfolio | How do diversification choices affect risk? | Synthetic monthly returns, no transaction costs or forward performance |
+| Portfolio | How do diversification choices affect risk? | The original model is synthetic; the separate adjusted-price backtest is historical but uses simplified costs and in-sample hindsight optimisation |
 | KYC | Which *synthetic* cases are flagged for human review? | Thresholds are arbitrary, not validated or regulatory-compliant |
 | Bonds | How sensitive is price to parallel rate shifts? | Fixed annual coupons; excludes credit, liquidity, yield-curve shape |
 | M&A | Can a simplified deal be EPS-accretive? | Excludes transaction fees, purchase accounting, integration costs |
@@ -103,8 +107,8 @@ Unit tests cover fundamental identities, expected sensitivity direction, financi
 ## Recommended next iterations
 
 1. Replace scenario inputs with properly sourced public-company filings and dated price data; cite every source.
-2. Add company-specific three-statement models and peer valuation, with clear forecast assumptions.
-3. Use point-in-time price histories for out-of-sample portfolio backtests and include fees.
+2. Extend the NVIDIA initiation-style research with verified interim 10-Q updates, peer multiples and deeper industry diligence.
+3. Extend the current historical ETF sample into a walk-forward out-of-sample optimisation strategy with explicit turnover, fee and tax modelling.
 4. Build an anonymised *synthetic* case investigation workflow, with false-positive measurement and governance.
 5. Extend the deal model to purchase price allocation, financing schedules, transaction fees and integration scenarios.
 
@@ -113,6 +117,10 @@ Unit tests cover fundamental identities, expected sensitivity direction, financi
 **Independent Financial Analytics Portfolio** — Built five Python/Streamlit analytical prototypes covering DCF valuation, portfolio performance measurement, explainable synthetic KYC risk screening, duration/convexity modelling and M&A EPS accretion/dilution. Implemented scenario controls, documented assumptions and automated model tests.
 
 Only use this description once you have personally reviewed and can explain the models. Never present synthetic returns as real investment performance.
+
+## AI-assisted development
+
+This independent educational project was built with the assistance of OpenAI's ChatGPT for programming, workflow design and documentation. AI-assisted outputs remain subject to human review, source verification, and scrutiny of modelling assumptions; AI involvement is not evidence of independently validated institutional-grade research.
 
 ## Author and licence
 
