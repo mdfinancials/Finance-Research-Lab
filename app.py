@@ -12,6 +12,7 @@ from case_studies.etf_portfolio.study import analyse as etf_case
 from case_studies.kyc_triage.study import evaluate as kyc_case
 from case_studies.treasury_duration.study import analyse as bond_case
 from case_studies.ma_acquisition.study import analyse as ma_case, matrix as ma_matrix
+from case_studies.nvidia_three_statement.yahoo_research import load_yahoo, scenario_table, sensitivity_table, YahooDataError
 
 st.set_page_config(page_title='Finance Research Lab',layout='wide',page_icon='📈')
 st.markdown("""
@@ -26,7 +27,7 @@ st.markdown("""
 .eyebrow-label {letter-spacing:.1em; text-transform:uppercase; font-size:.77rem; font-weight:700; color:#2c8590;}
 </style>
 """,unsafe_allow_html=True)
-page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies'])
+page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies','07 · NVIDIA Yahoo Finance Research'])
 st.sidebar.divider()
 st.sidebar.caption("Independent finance research • Education and scenario analysis")
 st.sidebar.link_button("GitHub source code","https://github.com/mdfinancials/Finance-Research-Lab",use_container_width=True)
@@ -94,6 +95,36 @@ if page.startswith("Home"):
     st.subheader("How to use this portfolio")
     st.write("Select a model from the left navigation to adjust financial drivers, examine outputs, and explore the applied case studies. Source code, methodology and assumptions are linked from GitHub.")
     st.info("Educational research: outputs are not live prices, investment recommendations, client records, or validated compliance decisions. All simulations and assumptions are labelled.")
+
+elif page.startswith('07'):
+    st.title("NVIDIA · Yahoo Finance Research")
+    st.caption("Annual financials and adjusted/closing price history retrieved from Yahoo Finance via yfinance. Analyst forecasts are hypothetical.")
+    st.markdown("[Yahoo Finance NVDA](https://finance.yahoo.com/quote/NVDA/) · [Financial statements](https://finance.yahoo.com/quote/NVDA/financials/) · [SEC filings](https://investor.nvidia.com/financial-info/sec-filings/default.aspx)")
+    st.info("Yahoo Finance data can be delayed or temporarily inaccessible. Cross-check any figures against company filings before using the model for decisions.")
+    @st.cache_data(ttl=3600,show_spinner="Fetching NVIDIA data from Yahoo Finance...")
+    def _get_yahoo_nvda():
+        return load_yahoo()
+    if st.button("Refresh Yahoo Finance data"):
+        _get_yahoo_nvda.clear()
+    try:
+        snapshot=_get_yahoo_nvda()
+        st.success(f"Data source: Yahoo Finance | Latest price date: {snapshot['price_date']} | Retrieved UTC: {snapshot['retrieved_utc'][:19]}")
+        st.metric("Most recent Yahoo Finance closing price (USD)",f"${snapshot['price']:,.2f}")
+        st.subheader("Historical annual statements (USD millions)")
+        st.dataframe(snapshot["annual"],use_container_width=True)
+        st.line_chart(snapshot["prices"]["Close"])
+        st.subheader("Illustrative five-year discounted cash-flow scenarios")
+        st.write("The share count defaults to Yahoo Finance's most recent annual diluted average shares, which may differ from current outstanding shares.")
+        shares=st.number_input("Diluted shares (millions, verify against filings)",min_value=1.0,max_value=100000.0,value=24285.0,step=100.0)
+        scenarios_df=scenario_table(snapshot,shares_m=shares)
+        st.dataframe(scenarios_df.round(2),use_container_width=True)
+        st.subheader("Base-case WACC × terminal growth sensitivity")
+        st.dataframe(sensitivity_table(snapshot,shares_m=shares).round(2),use_container_width=True)
+        st.warning("Scenarios are analyst assumptions, not current price targets or recommendations. Yahoo's filing periods, missing investment lines, dilution and accounting classifications require validation.")
+    except (YahooDataError,ValueError,KeyError,TypeError,IndexError) as exc:
+        st.error("Yahoo Finance data cannot be used to calculate the report right now.")
+        st.code(str(exc))
+        st.write("Use the static NVIDIA case study while Yahoo Finance is unavailable. No replacement financial numbers have been invented.")
 
 elif page.startswith('01'):
     st.header('DCF valuation and sensitivity analysis')
