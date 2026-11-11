@@ -13,20 +13,10 @@ from case_studies.kyc_triage.study import evaluate as kyc_case
 from case_studies.treasury_duration.study import analyse as bond_case
 from case_studies.ma_acquisition.study import analyse as ma_case, matrix as ma_matrix
 from case_studies.nvidia_three_statement.yahoo_research import load_yahoo, scenario_table, sensitivity_table, YahooDataError
+from ui_components import apply_style, heading, insight, source_note, footer, downloadable_csv
 
 st.set_page_config(page_title='Finance Research Lab',layout='wide',page_icon='📈')
-st.markdown("""
-<style>
-.block-container {max-width: 1120px; padding-top: 2.0rem; padding-bottom: 4rem;}
-[data-testid="stSidebar"] {background: #111b2b;}
-[data-testid="stSidebar"] * {color: #e4edf8;}
-.hero {padding: 2.15rem 2rem; border-radius: 18px; background: linear-gradient(115deg,#132b48,#17253e 60%,#245a69); color: white;}
-.hero .eyebrow {font-size: .78rem; letter-spacing: .15em; color: #a6ebd6; text-transform: uppercase; font-weight: 700;}
-.hero h1 {font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.14; color:white; margin: .55rem 0;}
-.hero p {color:#d2e0ed; max-width: 680px; font-size:1.07rem;}
-.eyebrow-label {letter-spacing:.1em; text-transform:uppercase; font-size:.77rem; font-weight:700; color:#2c8590;}
-</style>
-""",unsafe_allow_html=True)
+apply_style()
 page=st.sidebar.radio('Navigate', ['Home · Portfolio', '01 · Equity valuation','02 · Portfolio analytics','03 · KYC risk triage','04 · Fixed income','05 · M&A modelling','06 · Applied case studies','07 · NVIDIA Yahoo Finance Research'])
 st.sidebar.divider()
 st.sidebar.caption("Independent finance research • Education and scenario analysis")
@@ -145,78 +135,157 @@ elif page.startswith('07'):
         st.write("Use the static NVIDIA case study while Yahoo Finance is unavailable. No replacement financial numbers have been invented.")
 
 elif page.startswith('01'):
-    st.header('DCF valuation and sensitivity analysis')
-    a,b,c=st.columns(3)
-    rev=a.number_input('Starting revenue (million)',100.,100000.,1000.)
-    growth=b.slider('Revenue growth',-.10,.30,.07,.01)
-    wacc=c.slider('WACC',.04,.25,.095,.005)
-    margin=a.slider('EBIT margin',.01,.5,.20,.01)
-    tg=b.slider('Terminal growth',0.,.05,.025,.005)
-    netdebt=c.number_input('Net debt (million)',-10000.,10000.,300.)
-    if tg>=wacc: st.error('WACC must exceed terminal growth')
+    heading("01","Equity valuation studio","Explore how discount rates, profitability and long-term growth drive intrinsic equity value.")
+    source_note("Illustrative financial assumptions · USD millions · five-year discounted cash flow")
+    with st.container(border=True):
+        st.markdown("**Set the assumptions**")
+        a,b,d=st.columns(3)
+        revenue=a.number_input("Annual revenue (USD m)",100.,100000.,1000.,step=100.)
+        growth=b.slider("Revenue growth (%)",-10,30,7)/100
+        wacc=d.slider("Discount rate / WACC (%)",4.0,25.0,9.5,.5)/100
+        margin=a.slider("EBIT margin (%)",1,50,20)/100
+        terminal_growth=b.slider("Terminal growth (%)",0.0,5.0,2.5,.5)/100
+        debt=d.number_input("Net debt (USD m)",-10000.,10000.,300.,step=50.)
+    if terminal_growth>=wacc:
+        st.error("WACC must be greater than terminal growth.")
     else:
-        params=dict(revenue=rev,growth=growth,wacc=wacc,ebit_margin=margin,terminal_growth=tg,net_debt=netdebt)
-        result=dcf(**params)
-        col1,col2,col3=st.columns(3)
-        col1.metric('Enterprise value (m)',f"{result['enterprise_value']:,.1f}")
-        col2.metric('Equity value (m)',f"{result['equity_value']:,.1f}")
-        col3.metric('Value per share',f"${result['price_per_share']:,.2f}")
-        st.dataframe(result['forecast'].round(2),use_container_width=True)
-        st.subheader('Sensitivity: price per share, WACC × terminal growth')
-        st.dataframe(sensitivity(params).round(2),use_container_width=True)
-        st.caption('Assumptions are synthetic. Terminal value may dominate the result; validate against peers and disclosures.')
-
+        assumptions=dict(revenue=revenue,growth=growth,wacc=wacc,ebit_margin=margin,terminal_growth=terminal_growth,net_debt=debt)
+        result=dcf(**assumptions)
+        a,b,d=st.columns(3)
+        a.metric("Enterprise value",f"US$ {result['enterprise_value']:,.1f}m")
+        b.metric("Equity value",f"US$ {result['equity_value']:,.1f}m")
+        d.metric("Implied value/share",f"US$ {result['price_per_share']:,.2f}")
+        insight("DCF value is highly sensitive to WACC, future cash flows and terminal growth. These illustrative results are not a recommendation for any traded security.")
+        t1,t2,t3=st.tabs(["Forecast cash flows","Valuation sensitivity","Research notes"])
+        with t1:
+            frame=result["forecast"].copy()
+            st.line_chart(frame.set_index("year")[["revenue","fcf"]],height=320)
+            st.dataframe(frame.round(2),hide_index=True,use_container_width=True)
+            downloadable_csv(frame,"equity_dcf_forecast.csv")
+        with t2:
+            table=sensitivity(assumptions)
+            table.index=[f"{x:.1%}" for x in table.index]
+            table.columns=[f"{x:.1%}" for x in table.columns]
+            st.dataframe(table.style.format("{:,.2f}").background_gradient(cmap="Blues",axis=None),use_container_width=True)
+            st.metric("PV of terminal value / enterprise value",f"{result['terminal_share_of_ev']:.1%}")
+        with t3:
+            st.write("FCFF = EBIT(1 − tax) + depreciation − capex − change in operating working capital. Enterprise value is bridged to equity value by subtracting net debt.")
+            st.link_button("View source and assumptions","https://github.com/mdfinancials/Finance-Research-Lab/blob/main/projects/valuation.py")
 elif page.startswith('02'):
-    st.header('Portfolio analysis and minimum-variance allocation')
-    seed=st.number_input('Synthetic return scenario seed',0,100000,42)
+    heading("02","Portfolio risk laboratory","Examine diversification, risk-adjusted returns and minimum-variance allocation using reproducible simulated markets.")
+    source_note("Synthetic 120-month return paths · no realised investment performance")
+    with st.container(border=True):
+        a,b,d=st.columns(3)
+        seed=a.number_input("Scenario seed",0,100000,42)
+        w1=b.slider("Equity A weight (%)",0,100,50)
+        w2=d.slider("Equity B weight (%)",0,100,30)
+        if w1+w2>100:
+            st.error("Equity A and B weights cannot exceed 100% combined.")
+            st.stop()
+        weights=np.array([w1,w2,100-w1-w2])/100
+        st.caption(f"Remaining bond allocation: {weights[2]:.0%}")
     rng=np.random.default_rng(seed)
-    data=pd.DataFrame(rng.multivariate_normal([.008,.006,.004],[[.0025,.0009,.0004],[.0009,.0016,.0002],[.0004,.0002,.0007]],size=120),columns=['Equity A','Equity B','Bonds'])
-    w=np.array([.5,.3,.2]); r=rebalance_returns(data,w)
-    st.line_chart(pd.DataFrame({'Illustrative portfolio':(1+r).cumprod(),'Equity A':(1+data['Equity A']).cumprod()}))
-    m=metrics(r,benchmark=data['Equity A'])
-    st.dataframe(pd.DataFrame([m]).T.rename(columns={0:'Value'}))
-    optim=min_variance_weights(data)
-    st.write('Constrained minimum-variance allocation (historical synthetic covariance)')
-    st.dataframe(pd.DataFrame({'asset':data.columns,'current_weight':w,'min_variance_weight':optim}))
-    st.caption('Synthetic monthly returns, monthly rebalancing, no trading costs. No historical investment performance is claimed.')
-
+    returns=pd.DataFrame(rng.multivariate_normal([.008,.006,.004],[[.0025,.0009,.0004],[.0009,.0016,.0002],[.0004,.0002,.0007]],size=120),columns=["Equity A","Equity B","Bonds"])
+    portfolio=rebalance_returns(returns,weights)
+    report=metrics(portfolio,benchmark=returns["Equity A"])
+    cols=st.columns(4)
+    for col,name,value in zip(cols,["Illustrative CAGR","Annualised volatility","Sharpe ratio","Max drawdown"],[f"{report['cagr']:.1%}",f"{report['volatility']:.1%}",f"{report['sharpe']:.2f}",f"{report['max_drawdown']:.1%}"]):
+        col.metric(name,value)
+    insight("Diversification depends on correlation and asset exposure. Statistics here describe hypothetical simulated returns rather than historical ETF returns.")
+    t1,t2,t3=st.tabs(["Portfolio growth","Optimal allocation","Risk diagnostics"])
+    with t1:
+        wealth=pd.DataFrame({"Simulated portfolio":(1+portfolio).cumprod(),"Simulated equity benchmark":(1+returns["Equity A"]).cumprod()})
+        st.line_chart(wealth,height=340)
+        downloadable_csv(wealth.reset_index(drop=True),"synthetic_portfolio_growth.csv")
+    with t2:
+        try:
+            optimal=min_variance_weights(returns)
+            allocations=pd.DataFrame({"Asset":returns.columns,"Current %":weights*100,"Minimum variance %":optimal*100})
+            st.bar_chart(allocations.set_index("Asset"),height=310)
+            st.dataframe(allocations.round(2),hide_index=True,use_container_width=True)
+        except RuntimeError as exc:
+            st.warning(f"Optimization could not converge: {exc}")
+    with t3:
+        st.dataframe(returns.corr().round(2).style.background_gradient(cmap="Blues",axis=None),use_container_width=True)
+        st.write("Estimated beta versus the synthetic equity benchmark:",f"{report.get('beta',float('nan')):.2f}")
+        st.caption("Assumes monthly rebalancing and excludes costs, tax, and liquidity constraints.")
 elif page.startswith('03'):
-    st.header('Explainable customer risk review triage')
-    st.warning('Entirely synthetic records. Scores are illustrative prioritisation rules, NOT validated AML risk ratings or proof of suspicious activity.')
-    df=score_customers(sample_customers())
-    st.metric('Priority review cases',int((df.tier=='Priority').sum()))
-    st.bar_chart(df.set_index('customer_id').score)
-    st.dataframe(df,use_container_width=True)
-    st.markdown('**Controls:** human approval, access restrictions, false-positive review, documented policy mapping and periodic validation would be required before any real-world use.')
-
+    heading("03","Financial crime analytics","An explainable synthetic customer-review queue with score drivers and prioritisation.")
+    source_note("All customer records are fictional; no actual AML decisions")
+    cases=score_customers(sample_customers())
+    with st.container(border=True):
+        a,b=st.columns([1,2])
+        threshold=a.slider("Minimum risk score",0,100,0,5)
+        tiers=b.multiselect("Review tiers",["Low","Review","Priority"],default=["Low","Review","Priority"])
+    filtered=cases[(cases["score"]>=threshold)&cases["tier"].astype(str).isin(tiers)].copy()
+    a,b,d=st.columns(3)
+    a.metric("Cases in queue",len(filtered))
+    b.metric("Priority cases",int(filtered["tier"].astype(str).eq("Priority").sum()))
+    d.metric("Highest score",f"{int(filtered['score'].max()) if len(filtered) else 0}/100")
+    insight("The illustrative risk score supports human prioritisation. It does not indicate wrongdoing or determine regulatory compliance.")
+    t1,t2,t3=st.tabs(["Review queue","Score distribution","Controls"])
+    with t1:
+        st.dataframe(filtered[["customer_id","score","tier","reason_codes","monthly_transactions","cash_ratio","days_since_kyc"]],hide_index=True,use_container_width=True)
+        downloadable_csv(filtered,"synthetic_kyc_queue.csv")
+    with t2:
+        st.bar_chart(filtered.set_index("customer_id")["score"],height=320)
+    with t3:
+        st.write("A real system would require approved risk-policy mapping, controlled access, data validation, false-positive review, quality assurance, human approval, logging and regular monitoring.")
+        st.link_button("Read case study","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/kyc_triage")
 elif page.startswith('04'):
-    st.header('Bond duration, convexity and interest-rate shocks')
-    a,b,c=st.columns(3)
-    coupon=a.slider('Annual coupon',0.,.15,.045,.005)
-    yld=b.slider('Yield',0.,.20,.05,.005)
-    years=c.slider('Years to maturity',1,30,8)
-    x=bond_analytics(coupon_rate=coupon,yield_rate=yld,years=years)
-    a,b,c=st.columns(3)
-    a.metric('Bond price',f"${x['price']:,.2f}")
-    b.metric('Modified duration',f"{x['modified_duration']:.2f}")
-    c.metric('Convexity',f"{x['convexity']:.2f}")
-    st.dataframe(shock_table(base_yield=yld,coupon_rate=coupon,years=years),use_container_width=True)
-    st.caption('Annual-coupon bond, parallel yield shocks, no spread or default modelling.')
-
+    heading("04","Fixed-income risk desk","Examine bond valuation, modified duration, convexity and rate-shock scenarios.")
+    source_note("Hypothetical annual-coupon fixed-rate bond · USD 1,000 face")
+    with st.container(border=True):
+        a,b,d=st.columns(3)
+        coupon=a.slider("Annual coupon (%)",0.0,15.0,4.5,.5)/100
+        yld=b.slider("Yield to maturity (%)",0.0,20.0,5.0,.5)/100
+        years=d.slider("Years to maturity",1,30,8)
+    bond=bond_analytics(coupon_rate=coupon,yield_rate=yld,years=years)
+    a,b,d=st.columns(3)
+    a.metric("Bond price",f"US$ {bond['price']:,.2f}")
+    b.metric("Modified duration",f"{bond['modified_duration']:.2f} yrs")
+    d.metric("Convexity",f"{bond['convexity']:.1f}")
+    insight("Bond prices generally fall as yields rise. Duration measures first-order rate exposure; convexity helps explain non-linear price responses.")
+    shocks=shock_table(base_yield=yld,coupon_rate=coupon,years=years)
+    t1,t2,t3=st.tabs(["Yield shocks","Cash-flow schedule","Methodology"])
+    with t1:
+        visible=shocks.assign(price_change_percent=shocks["price_change_pct"]*100)
+        st.line_chart(visible.set_index("yield_change_bps")["price_change_percent"],height=320)
+        st.dataframe(visible.round(2),hide_index=True,use_container_width=True)
+        downloadable_csv(visible,"fixed_income_shocks.csv")
+    with t2:
+        st.bar_chart(bond["cashflows"].set_index("year"),height=310)
+        st.dataframe(bond["cashflows"].round(2),hide_index=True,use_container_width=True)
+    with t3:
+        st.write("Discounted annual coupons plus principal using a single YTM. The exercise excludes accrued interest, key-rate duration, non-par curves, default risk and trading costs.")
+        st.link_button("Read Treasury case study","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/treasury_duration")
 elif page.startswith('05'):
-    st.header('Acquisition EPS accretion / dilution')
-    a,b,c=st.columns(3)
-    stock=a.slider('Stock-funded fraction',0.,1.,.4,.05)
-    syn=b.number_input('Annual pretax synergies (million)',0.,1000.,30.)
-    rate=c.slider('New debt rate',0.,.2,.065,.005)
-    x=deal_model(stock_pct=stock,pretax_synergies=syn,borrow_rate=rate)
-    a,b,c=st.columns(3)
-    a.metric('Standalone EPS',f"${x['standalone_eps']:.2f}")
-    b.metric('Pro forma EPS',f"${x['proforma_eps']:.2f}")
-    c.metric('Accretion / (dilution)',f"{x['accretion_pct']:+.1%}")
-    st.dataframe(scenarios().round(3),use_container_width=True)
-    st.caption('Simplified EPS screen only; excludes fees, integration costs, purchase accounting, amortisation and timing.')
-
+    heading("05","M&A transaction studio","Study acquisition funding structures, synergy scenarios and pro-forma earnings accretion.")
+    source_note("Entirely hypothetical acquisition · figures in USD millions")
+    with st.container(border=True):
+        a,b,d=st.columns(3)
+        stock=a.slider("Stock financing (%)",0,100,40,5)/100
+        synergy=b.number_input("Annual pre-tax synergies (USD m)",0.,1000.,30.,step=5.)
+        rate=d.slider("Debt borrowing rate (%)",0.0,20.0,6.5,.5)/100
+    model=deal_model(stock_pct=stock,pretax_synergies=synergy,borrow_rate=rate)
+    a,b,d=st.columns(3)
+    a.metric("Standalone EPS",f"US$ {model['standalone_eps']:.2f}")
+    b.metric("Pro-forma EPS",f"US$ {model['proforma_eps']:.2f}")
+    d.metric("EPS accretion / dilution",f"{model['accretion_pct']:+.1%}")
+    insight("EPS accretion is not the same as economic value creation. Purchase accounting, transaction fees and integration risks are excluded from this simplified screen.")
+    t1,t2,t3=st.tabs(["Deal economics","Scenario grid","Investment committee notes"])
+    with t1:
+        st.bar_chart(pd.DataFrame({"Earnings per share":[model["standalone_eps"],model["proforma_eps"]]},index=["Standalone","Pro forma"]),height=310)
+        st.dataframe(pd.DataFrame([model]).round(3),hide_index=True,use_container_width=True)
+    with t2:
+        grid=scenarios().copy()
+        grid["Stock financed (%)"]=grid["stock_pct"]*100
+        grid["EPS accretion (%)"]=grid["accretion_pct"]*100
+        st.dataframe(grid[["Stock financed (%)","pretax_synergies","EPS accretion (%)"]].round(2),hide_index=True,use_container_width=True)
+        downloadable_csv(grid,"merger_scenarios.csv")
+    with t3:
+        st.write("Further diligence should address the target's operating profile, financing capacity, goodwill, amortisation, integration costs, debt covenants, tax assumptions and value creation.")
+        st.link_button("Read M&A case study","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/ma_acquisition")
 else:
     st.header("Applied finance case studies")
     st.caption("Five sourced or synthetic, reproducible analyst cases. These are not live investment recommendations.")
@@ -256,3 +325,5 @@ else:
         b.metric("Break-even pretax synergies (USD millions)",f'{r["break_even_synergies_m"]:,.1f}')
         st.dataframe(pd.DataFrame(ma_matrix()),use_container_width=True)
         st.info("Accretion alone does not establish transaction value creation.")
+
+footer()
