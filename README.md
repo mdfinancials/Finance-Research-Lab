@@ -23,6 +23,12 @@ Bachelor of Commerce (Finance), **Macquarie University**. Banking experience as 
 
 Source: [`app.py`](app.py) · [Deployment & troubleshooting](DEPLOY.md).
 
+## NVIDIA equity research using Yahoo Finance
+
+[Open the NVIDIA Yahoo Finance research methodology](case_studies/nvidia_three_statement/YAHOO_FINANCE_RESEARCH.md). The live Streamlit sidebar includes **07 · NVIDIA Yahoo Finance Research**, with a Yahoo Finance annual-statement import, a dated historical share-price chart, five-year FCFF scenarios, and WACC/terminal-growth sensitivity analysis.
+
+**Data quality:** Yahoo Finance data is requested dynamically; availability and reported fields can vary. The project does not claim a verified live price target or publish unvalidated downloaded values.
+
 ## Featured case study: NVIDIA (NVDA) three-statement model
 
 [Explore the NVIDIA three-statement case study](case_studies/nvidia_three_statement/README.md). This research exercise uses reported FY2025–FY2026 NVIDIA financial statements and transparent, illustrative FY2027–FY2029 assumptions to link income, balance-sheet and cash-flow projections. The case study includes a tested Python forecasting implementation. The downloadable Excel workbook can be added to the folder separately.
