@@ -177,6 +177,90 @@ elif page.startswith('07'):
         st.code(str(exc))
         st.write("Use the static NVIDIA case study while Yahoo Finance is unavailable. No replacement financial numbers have been invented.")
 
+elif page.startswith('08'):
+    heading("08","Historical ETF portfolio research","Compare historical VOO, VXUS and QQQ allocations using adjusted market prices, efficient-frontier analysis and hindsight-only optimisation.",tag="MARKET RESEARCH")
+    source_note("Yahoo Finance adjusted closing prices · monthly rebalancing · USD total-return approximation")
+    st.info("Historical backtests are not a record of real trades. Optimised allocations use the full selected sample and are hindsight illustrations, not out-of-sample strategies.")
+    with st.container(border=True):
+        st.markdown("**Research settings**")
+        a,b,d=st.columns(3)
+        period=a.selectbox("Historical window",["3y","5y","10y"],index=1)
+        risk_free=b.slider("Risk-free assumption (%)",0.0,10.0,3.5,.5)/100
+        fees=d.slider("Simplified monthly cost (bps)",0,25,0,1)
+        a,b,d=st.columns(3)
+        voo=a.slider("VOO allocation (%)",0,100,45)
+        vxus=b.slider("VXUS allocation (%)",0,100,35)
+        if voo+vxus>100:
+            st.error("VOO and VXUS together must be at most 100%.")
+            st.stop()
+        qqq=100-voo-vxus
+        d.metric("QQQ allocation",f"{qqq}%")
+    @st.cache_data(ttl=3600,show_spinner="Loading adjusted ETF price history from Yahoo Finance...")
+    def _etf_history(window):
+        return load_adjusted_prices(window)
+    if st.button("Refresh ETF history"):
+        _etf_history.clear()
+    try:
+        prices=_etf_history(period)
+        result=historical_backtest(prices,[voo/100,vxus/100,qqq/100],
+                                   risk_free=risk_free,fee_bps=fees)
+        st.caption(f"Yahoo adjusted closing prices through {result['last_price_date']}. Completed monthly-return sample: {result['period_start']} to {result['period_end']} ({result['months']} months).")
+        a,b,d,e=st.columns(4)
+        a.metric("Backtest CAGR",f"{result['cagr']:.1%}")
+        b.metric("Annualised volatility",f"{result['annual_volatility']:.1%}")
+        d.metric("Sharpe ratio",f"{result['sharpe']:.2f}")
+        e.metric("Max drawdown",f"{result['max_drawdown']:.1%}")
+        insight("The selected weights are backtested as a monthly-rebalanced historical strategy, with a simplified cost allowance. Optimised weights are fitted to the entire dataset and are NOT presented as historically achieved returns.")
+        t1,t2,t3,t4=st.tabs(["Historical backtest","Efficient frontier","Allocation analysis","Data & methodology"])
+        with t1:
+            st.subheader("Growth of US$1 invested")
+            st.line_chart(result["wealth"],height=350)
+            st.caption(f"VOO-only benchmark CAGR: {result['benchmark_cagr']:.1%}. Figures are USD-based; no foreign exchange or investor tax modelling.")
+            downloadable_csv(result["wealth"].reset_index(),"etf_historical_portfolio_growth.csv")
+            st.subheader("Adjusted monthly ETF returns (%)")
+            monthly=(100*result["monthly_returns"]).round(2)
+            st.dataframe(monthly,use_container_width=True)
+        with t2:
+            frontier=result["frontier"]
+            comparison=result["points"]
+            line=alt.Chart(frontier).mark_line(color="#087f78",strokeWidth=3).encode(
+                x=alt.X("risk_pct:Q",title="Annualised volatility (%)",scale=alt.Scale(zero=False)),
+                y=alt.Y("return_pct:Q",title="Historical arithmetic return (% p.a.)",scale=alt.Scale(zero=False)),
+                tooltip=[alt.Tooltip("risk_pct:Q",format=".2f"),
+                         alt.Tooltip("return_pct:Q",format=".2f")])
+            dots=alt.Chart(comparison).mark_circle(size=140,opacity=.95).encode(
+                x="Risk (%):Q",y="Return (%):Q",
+                color=alt.Color("Portfolio:N",legend=alt.Legend(orient="bottom")),
+                tooltip=["Portfolio",alt.Tooltip("Risk (%):Q",format=".2f"),
+                         alt.Tooltip("Return (%):Q",format=".2f")])
+            st.altair_chart((line+dots).properties(height=385),use_container_width=True)
+            st.caption("In-sample sample-moment efficient frontier. The green curve is not a prospective risk-return forecast.")
+            st.dataframe(comparison.round(3),hide_index=True,use_container_width=True)
+        with t3:
+            allocation=pd.DataFrame({
+                "ETF":["VOO","VXUS","QQQ"],
+                "Selected":result["selected_weights"],
+                "Minimum variance (in-sample)":result["minimum_variance_weights"],
+                "Maximum Sharpe (in-sample)":result["maximum_sharpe_weights"]})
+            st.bar_chart(allocation.set_index("ETF"),height=320)
+            shown=allocation.copy()
+            for col in shown.columns[1:]:
+                shown[col]=100*shown[col]
+            st.dataframe(shown.round(1),hide_index=True,use_container_width=True)
+            st.caption("All allocations shown in percent. Long-only weights add to 100%. Optimisation is in-sample and subject to estimation error.")
+            downloadable_csv(shown,"etf_portfolio_allocations.csv")
+        with t4:
+            st.markdown("**Yahoo Finance:** [VOO](https://finance.yahoo.com/quote/VOO/) · [VXUS](https://finance.yahoo.com/quote/VXUS/) · [QQQ](https://finance.yahoo.com/quote/QQQ/)")
+            st.write("Price history uses auto-adjusted Yahoo Finance closing values for dividends and splits, subject to third-party data quality. Common trading days are used across all ETFs.")
+            st.write("Daily series are reduced to completed calendar-month returns. Fixed weights are applied every month. The risk-free assumption is annualised; a fixed illustrative fee is deducted each month.")
+            st.write("Max-Sharpe and min-variance use the same historical return sample. As such, these are hindsight comparisons, not walk-forward or live portfolio backtests.")
+            st.warning("The selected backtest excludes slippage, tax, foreign-exchange costs and the timing effects of distributions. For an investable optimisation strategy, test rolling out-of-sample signals and realised turnover.")
+            st.link_button("Review ETF case study","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/etf_portfolio")
+    except (PortfolioDataError,ValueError,KeyError,TypeError) as exc:
+        st.error("Historical ETF analysis is temporarily unavailable.")
+        st.code(str(exc))
+        st.write("Use the separate simulated Portfolio Risk Laboratory in sidebar item 02. No historical prices will be invented.")
+
 elif page.startswith('01'):
     heading("01","Equity valuation studio","Explore how discount rates, profitability and long-term growth drive intrinsic equity value.")
     source_note("Illustrative financial assumptions · USD millions · five-year discounted cash flow")
