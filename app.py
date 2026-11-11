@@ -90,8 +90,8 @@ if page.startswith("Home"):
     st.info("Educational research: outputs are not live prices, investment recommendations, client records, or validated compliance decisions. All simulations and assumptions are labelled.")
 
 elif page.startswith('07'):
-    st.title("NVIDIA · Yahoo Finance Research")
-    st.caption("Annual financials and adjusted/closing price history retrieved from Yahoo Finance via yfinance. Analyst forecasts are hypothetical.")
+    heading("07","NVIDIA · Yahoo Finance research","Examine annual financial statements, dated historical prices and five-year discounted cash-flow scenarios.",tag="YAHOO FINANCE RESEARCH")
+    source_note("Yahoo Finance via yfinance · live retrieval may be delayed or unavailable · analyst assumptions separated from reported financials")
     st.markdown("[Yahoo Finance NVDA](https://finance.yahoo.com/quote/NVDA/) · [Financial statements](https://finance.yahoo.com/quote/NVDA/financials/) · [SEC filings](https://investor.nvidia.com/financial-info/sec-filings/default.aspx)")
     st.info("Yahoo Finance data can be delayed or temporarily inaccessible. Cross-check any figures against company filings before using the model for decisions.")
     @st.cache_data(ttl=3600,show_spinner="Fetching NVIDIA data from Yahoo Finance...")
@@ -102,14 +102,23 @@ elif page.startswith('07'):
     try:
         snapshot=_get_yahoo_nvda()
         st.success(f"Data source: Yahoo Finance | Latest price date: {snapshot['price_date']} | Retrieved UTC: {snapshot['retrieved_utc'][:19]}")
-        st.metric("Most recent Yahoo Finance closing price (USD)",f"${snapshot['price']:,.2f}")
+        a,b,d=st.columns(3)
+        a.metric("Latest available close",f"US$ {snapshot['price']:,.2f}")
+        b.metric("Price date",snapshot["price_date"])
+        d.metric("Financial periods",str(len(snapshot["annual"])))
         st.subheader("Historical annual statements (USD millions)")
         annual_display=snapshot["annual"].copy()
         annual_display["fiscal_year"]="FY"+annual_display["fiscal_year_end"].str.slice(0,4)
         annual_display=annual_display.rename(columns={"fiscal_year_end":"Yahoo period-end label"})
         st.caption("Yahoo often labels annual periods January 31. NVIDIA's actual fiscal year-end date may differ; refer to SEC filings. FY designation is based on the year of Yahoo's period label.")
-        st.dataframe(annual_display,use_container_width=True)
-        st.line_chart(snapshot["prices"]["Close"])
+        t1,t2=st.tabs(["Financial statements","One-year price history"])
+        with t1:
+            st.dataframe(annual_display,hide_index=True,use_container_width=True)
+            downloadable_csv(annual_display,"nvidia_yahoo_annual_statements.csv")
+        with t2:
+            st.line_chart(snapshot["prices"]["Close"],height=345)
+            st.caption(f"Close price, USD · latest available trading date {snapshot['price_date']}")
+            downloadable_csv(snapshot["prices"].reset_index(),"nvidia_yahoo_price_history.csv")
         st.subheader("Illustrative five-year discounted cash-flow scenarios")
         st.write("The share-count input starts with Yahoo Finance's latest annual diluted weighted-average shares, not a verified current outstanding share count.")
         latest_annual=snapshot["annual"].sort_values("fiscal_year_end").iloc[-1]
@@ -125,9 +134,20 @@ elif page.startswith('07'):
         for col in ("wacc","terminal_growth"):
             scenario_display[col]=scenario_display[col].map(lambda x:f"{x:.1%}")
         scenario_display=scenario_display.rename(columns={"scenario":"Scenario","wacc":"WACC","terminal_growth":"Terminal growth","value_per_share_usd":"Value/share (USD)","upside_to_yahoo_close_pct":"Upside vs dated close (%)","terminal_value_pct":"Terminal value share (%)"})
-        st.dataframe(scenario_display.round(2),hide_index=True,use_container_width=True)
-        st.subheader("Base-case WACC × terminal growth sensitivity")
-        st.dataframe(sensitivity_table(snapshot,shares_m=shares).round(2),use_container_width=True)
+        m1,m2,m3=st.columns(3)
+        for col,name in zip((m1,m2,m3),("Bear","Base","Bull")):
+            value=float(scenarios_df.loc[scenarios_df["scenario"]==name,"value_per_share_usd"].iloc[0])
+            col.metric(name+" illustrative value",f"US$ {value:,.2f}")
+        insight("These values represent assumed operating performance and discount rates, not established stock-price targets. The comparison with Yahoo's last available close is scenario arithmetic, not an investment recommendation.")
+        t3,t4=st.tabs(["Valuation scenarios","Sensitivity heatmap"])
+        with t3:
+            st.dataframe(scenario_display.round(2),hide_index=True,use_container_width=True)
+            downloadable_csv(scenarios_df,"nvidia_dcf_scenarios.csv")
+        with t4:
+            matrix=sensitivity_table(snapshot,shares_m=shares).round(2)
+            matrix.index=[f"{v:.1%}" for v in matrix.index]
+            matrix.columns=[f"{v:.1%}" for v in matrix.columns]
+            st.dataframe(matrix.style.format("{:,.2f}").background_gradient(cmap="Blues",axis=None),use_container_width=True)
         st.warning("Scenarios are analyst assumptions, not current price targets or recommendations. Yahoo's filing periods, missing investment lines, dilution and accounting classifications require validation.")
     except (YahooDataError,ValueError,KeyError,TypeError,IndexError) as exc:
         st.error("Yahoo Finance data cannot be used to calculate the report right now.")
@@ -287,43 +307,56 @@ elif page.startswith('05'):
         st.write("Further diligence should address the target's operating profile, financing capacity, goodwill, amortisation, integration costs, debt covenants, tax assumptions and value creation.")
         st.link_button("Read M&A case study","https://github.com/mdfinancials/Finance-Research-Lab/tree/main/case_studies/ma_acquisition")
 else:
-    st.header("Applied finance case studies")
-    st.caption("Five sourced or synthetic, reproducible analyst cases. These are not live investment recommendations.")
-    case=st.selectbox("Select case study",["NVIDIA DCF","ETF Allocation","Synthetic KYC","Treasury Duration","Hypothetical M&A"])
+    heading("06","Applied research library","Explore five reproducible case studies that connect analytical methods with practical financial questions.")
+    source_note("Public source data where indicated; all synthetic and hypothetical information identified explicitly")
+    case=st.selectbox("Research case study",["NVIDIA DCF","ETF Allocation","Synthetic KYC","Treasury Duration","Hypothetical M&A"])
     if case=="NVIDIA DCF":
         st.subheader("NVIDIA | FY2026 filings + FY2027–29 illustrative scenarios")
         st.write("These are analyst scenarios, not a live NVDA price target. Share count and growth assumptions are illustrative.")
         rows=[{"scenario":s,**{k:v for k,v in nvda_dcf(s).items() if k in ("wacc","terminal_growth","value_per_share_usd","terminal_pv_share")}} for s in ("bear","base","bull")]
-        st.dataframe(pd.DataFrame(rows),use_container_width=True)
-        st.dataframe(pd.DataFrame(nvda_grid(),columns=["WACC","Terminal growth","Illustrative USD/share"]),use_container_width=True)
+        results=pd.DataFrame(rows)
+        cols=st.columns(3)
+        for col,name in zip(cols,("bear","base","bull")):
+            value=float(results.loc[results["scenario"]==name,"value_per_share_usd"].iloc[0])
+            col.metric(name.title()+" case",f"US$ {value:,.2f}")
+        t1,t2=st.tabs(["Valuation scenarios","WACC sensitivity"])
+        with t1:
+            st.dataframe(results.round(3),hide_index=True,use_container_width=True)
+        with t2:
+            st.dataframe(pd.DataFrame(nvda_grid(),columns=["WACC","Terminal growth","Illustrative USD/share"]).round(3),hide_index=True,use_container_width=True)
     elif case=="ETF Allocation":
         st.subheader("VOO / VXUS / QQQ | Synthetic return and stress study")
         r=etf_case()
         st.write("Allocation: 45% VOO / 35% VXUS / 20% QQQ. No historical performance is claimed.")
-        st.dataframe(pd.DataFrame([r["summary"]]),use_container_width=True)
+        st.dataframe(pd.DataFrame([r["summary"]]).round(3),hide_index=True,use_container_width=True)
         st.metric("Hypothetical stress loss",f'{r["stress_loss"]:.1%}')
-        st.dataframe(pd.DataFrame({"ETF":["VOO","VXUS","QQQ"],"minimum_variance_weight":r["min_variance_weights"]}),use_container_width=True)
+        allocation=pd.DataFrame({"ETF":["VOO","VXUS","QQQ"],"Minimum variance weight (%)":100*r["min_variance_weights"]})
+        st.bar_chart(allocation.set_index("ETF"),height=300)
+        st.dataframe(allocation.round(2),hide_index=True,use_container_width=True)
     elif case=="Synthetic KYC":
         st.subheader("Explainable KYC review queue | Entirely synthetic records")
         r=kyc_case()
         a,b=st.columns(2)
         a.metric("Synthetic precision",f'{r["precision"]:.0%}')
         b.metric("Synthetic recall",f'{r["recall"]:.0%}')
-        st.dataframe(r["review_queue"],use_container_width=True)
+        st.dataframe(r["review_queue"],hide_index=True,use_container_width=True)
         st.warning("No actual customers, AML conclusions, or production model validation.")
     elif case=="Treasury Duration":
         st.subheader("10Y Treasury par yield snapshot | 10 Nov 2026")
         r=bond_case()
         st.write("Market par yield input: 4.98% on 10 Nov 2026. 4.5% coupon is hypothetical.")
         st.metric("Model bond price per $1,000 face",f'{r["base_price"]:.2f}')
-        st.dataframe(pd.DataFrame(r["scenarios"]),use_container_width=True)
+        frame=pd.DataFrame(r["scenarios"])
+        st.line_chart(frame.set_index("yield_shock_bps")[["exact_price_move_pct","duration_convexity_move_pct"]],height=320)
+        st.dataframe(frame.round(2),hide_index=True,use_container_width=True)
     else:
         st.subheader("Aster Cloud / Beacon AI | Entirely fictional acquisition")
         r=ma_case()
         a,b=st.columns(2)
         a.metric("EPS accretion / dilution",f'{r["accretion_pct"]:+.1%}')
         b.metric("Break-even pretax synergies (USD millions)",f'{r["break_even_synergies_m"]:,.1f}')
-        st.dataframe(pd.DataFrame(ma_matrix()),use_container_width=True)
+        matrix=pd.DataFrame(ma_matrix())
+        st.dataframe(matrix.round(3),hide_index=True,use_container_width=True)
         st.info("Accretion alone does not establish transaction value creation.")
 
 footer()
