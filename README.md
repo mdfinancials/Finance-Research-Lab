@@ -9,7 +9,9 @@ Five educational financial analytics prototypes, plus five applied case studies 
 
 ## Interactive portfolio website
 
-The website version is ready in [`app.py`](app.py), with a new landing page and interactive dashboards. **Deploy it to get a public URL:** [step-by-step Streamlit deployment instructions](DEPLOY.md). The deployment must be completed in the owner's Streamlit account before a live URL can be shared.
+**[Open the interactive Finance Research Lab →](https://md-finance-research-lab.streamlit.app/)** — Streamlit website deployed from this repository. Explore five model categories and five applied case studies. Screenshots confirm the homepage is loading; individual model interactions and anonymous access should still be checked before putting this link on a CV.
+
+Source: [`app.py`](app.py) · [Deployment & troubleshooting](DEPLOY.md).
 
 ## Featured case study: NVIDIA (NVDA) three-statement model
 
