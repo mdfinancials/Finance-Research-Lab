@@ -57,6 +57,10 @@ def monthly_returns(prices):
     """Month-end adjusted close; first month is the first complete transition."""
     p=normalise_prices(prices) if len(prices)>100 else prices.copy()
     month_end=p.resample("ME").last().dropna(how="any")
+    # Do not mistake an in-progress calendar month for a completed month.
+    current_month=pd.Timestamp.now(tz="UTC").tz_localize(None).to_period("M")
+    if not month_end.empty and month_end.index[-1].to_period("M")==current_month:
+        month_end=month_end.iloc[:-1]
     if len(month_end)<25:
         raise PortfolioDataError("Insufficient monthly observations for a meaningful backtest.")
     returns=month_end.pct_change(fill_method=None).iloc[1:]
