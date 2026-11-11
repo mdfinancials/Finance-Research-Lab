@@ -11,6 +11,22 @@ Five educational financial analytics prototypes that demonstrate core analyst sk
 
 [Explore the NVIDIA three-statement case study](case_studies/nvidia_three_statement/README.md). This research exercise uses reported FY2025–FY2026 NVIDIA financial statements and transparent, illustrative FY2027–FY2029 assumptions to link income, balance-sheet and cash-flow projections. The case study includes a tested Python forecasting implementation. The downloadable Excel workbook can be added to the folder separately.
 
+## Applied finance case studies — five reproducible projects
+
+Each case study has its own analytical question, methods, assumptions, limitations, and runnable Python script.
+
+| Case study | Applied question | Evidence |
+|---|---|---|
+| [01 NVIDIA three-statement & DCF](case_studies/nvidia_three_statement/VALUATION.md) | What drives implied equity value? | Reported FY2025/26 company data; explicit FY2027–FY2029 scenarios |
+| [02 ETF allocation & stress](case_studies/etf_portfolio/README.md) | How do diversification and correlated downside shocks affect risk? | VOO/VXUS/QQQ allocation using clearly *synthetic* return paths |
+| [03 Explainable KYC prioritisation](case_studies/kyc_triage/README.md) | Can audit-friendly risk rules help triage reviews? | Synthetic customer data and synthetic review labels |
+| [04 Treasury duration & convexity](case_studies/treasury_duration/README.md) | How sensitive is a bond proxy to rate shocks? | Dated US Treasury par yield plus hypothetical coupon bond |
+| [05 Hypothetical M&A](case_studies/ma_acquisition/README.md) | What synergies and funding mix lead to EPS accretion? | Fictional acquisition with scenario and break-even analysis |
+
+To reproduce all case studies: install `requirements.txt` then run `python -m pytest -q`. To run individual scripts: `python -m case_studies.etf_portfolio.study` (replace package name).
+
+**Evidence standards:** These are analyst training studies, not validated investment recommendations, real trade returns, regulatory AML systems or actual deal announcements. Inputs, historical reference dates and illustrative scenarios are identified in each project.
+
 ## Projects
 
 | # | Project | Skills demonstrated | Module |
