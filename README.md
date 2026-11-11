@@ -1,8 +1,8 @@
 # Finance Research Lab — Five Applied Finance Projects
 
-[![Model tests](https://img.shields.io/badge/models-tested-brightgreen)](#quality-checks)
+[![Python model tests](https://github.com/mdfinancials/Finance-Research-Lab/actions/workflows/python-tests.yml/badge.svg)](https://github.com/mdfinancials/Finance-Research-Lab/actions/workflows/python-tests.yml)
 
-Five educational financial analytics prototypes that demonstrate core analyst skills: **equity valuation, portfolio construction, financial-crime risk triage, interest-rate risk, and M&A deal analysis**.
+Five educational financial analytics prototypes, plus five applied case studies that demonstrate core analyst skills: **equity valuation, portfolio construction, financial-crime risk triage, interest-rate risk, and M&A deal analysis**.
 
 > **Transparency:** This repository ships with *synthetic illustrative data and assumptions*, **not live prices or real customer records**. It makes no claim of realised portfolio returns or verified client outcomes. Models are simplified educational tools, not financial advice, KYC compliance determinations, or investment recommendations.
 
