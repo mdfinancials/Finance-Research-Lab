@@ -41,9 +41,9 @@ div[data-testid="stCaptionContainer"], div[data-testid="stCaptionContainer"] * {
     border:1px solid #31536c; border-radius:20px; color:#fff;
     box-shadow:0 14px 35px rgba(19,43,70,.14);
 }
-.hero h1 {font-size:clamp(2rem,4vw,3.25rem);line-height:1.12; color:#fff !important;margin:.65rem 0;}
+.hero h1 {font-size:clamp(2.1rem,4vw,3.25rem) !important;line-height:1.12; color:#fff !important;margin:.65rem 0;}
 .hero p {color:#dceaf2;max-width:800px;font-size:1.03rem;line-height:1.65;}
-.hero .eyebrow {font-size:.74rem;font-weight:700;letter-spacing:.16em;color:#a4e2d2;}
+.hero .eyebrow {font-size:.74rem;font-weight:700;letter-spacing:.16em;color:#a4e2d2 !important;}
 .eyebrow {font-size:.76rem;font-weight:750;letter-spacing:.14em;color:#087f78 !important;margin-bottom:.2rem;line-height:1.5;}
 .page-subtitle {color:#536981;font-size:1.02rem;line-height:1.55;max-width:800px;margin:.3rem 0 .75rem;}
 .insight {background:#eef6f6;padding:1rem 1.2rem;border-left:3px solid #087f78;
