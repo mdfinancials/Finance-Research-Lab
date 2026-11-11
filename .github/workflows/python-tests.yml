@@ -18,5 +18,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
+      - name: Compile application and components
+        run: python -m py_compile app.py ui_components.py
       - name: Run model tests
         run: python -m pytest -q
